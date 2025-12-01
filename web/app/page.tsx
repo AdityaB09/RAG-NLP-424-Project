@@ -5,12 +5,13 @@ import { apiGet } from "../lib/api";
 import StatCards from "../components/StatCards";
 import QuestionHistoryTable from "../components/QuestionHistoryTable";
 
-type OverviewStats = {
+export type OverviewStats = {
   num_documents: number;
   num_chunks: number;
   num_questions: number;
   grounded_ratio: number;
   mode_counts: Record<string, number>;
+  questions_over_time: { day: string; count: number }[];
 };
 
 export default function HomePage() {

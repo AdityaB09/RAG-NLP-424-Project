@@ -8,9 +8,13 @@ type LogItem = {
   timestamp: string;
   question: string;
   mode: string;
+  top_k: number;
+  rerank: boolean;
   used_docs: string[];
   grounded: boolean;
   answerability: string;
+  refused: boolean;
+  total_ms: number;
 };
 
 type LogsResponse = {
@@ -32,6 +36,9 @@ const QuestionHistoryTable: FC = () => {
         <h2 className="text-sm font-semibold text-slate-100">
           Recent questions
         </h2>
+        <span className="text-[10px] text-slate-500">
+          Latest 5 queries hitting the RAG pipeline
+        </span>
       </div>
       <table className="table">
         <thead>
@@ -46,7 +53,10 @@ const QuestionHistoryTable: FC = () => {
         <tbody>
           {logs.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-4 text-center text-xs text-slate-500">
+              <td
+                colSpan={5}
+                className="py-4 text-center text-xs text-slate-500"
+              >
                 No questions yet – ask something on the Questions tab.
               </td>
             </tr>
@@ -66,6 +76,8 @@ const QuestionHistoryTable: FC = () => {
                 <td>
                   {l.grounded ? (
                     <span className="badge-green">Yes</span>
+                  ) : l.refused ? (
+                    <span className="badge-yellow">Refused</span>
                   ) : (
                     <span className="badge-red">No</span>
                   )}

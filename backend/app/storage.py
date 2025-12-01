@@ -1,18 +1,22 @@
 from __future__ import annotations
-from typing import Dict, List, Optional
-from uuid import uuid4
+from typing import Dict, List
 
 from .models import Document, Chunk, QAlog
 
 
 class InMemoryStore:
+    """
+    Very simple in-memory store.
+    Good enough for your demo / presentation.
+    """
+
     def __init__(self) -> None:
         self.documents: Dict[str, Document] = {}
         self.chunks: Dict[str, Chunk] = {}
         self.chunks_by_doc: Dict[str, List[str]] = {}
         self.logs: List[QAlog] = []
 
-        # Vectorizer & matrix for BM25-like retrieval
+        # Vectorizer & matrix for BM25-ish retrieval
         self.vectorizer = None
         self.tfidf_matrix = None
         self.chunk_id_to_index: Dict[str, int] = {}
@@ -27,9 +31,6 @@ class InMemoryStore:
 
     def add_log(self, log: QAlog) -> None:
         self.logs.append(log)
-
-    def next_log_id(self) -> str:
-        return str(uuid4())
 
 
 store = InMemoryStore()

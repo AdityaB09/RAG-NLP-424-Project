@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict
 from uuid import uuid4
 from datetime import datetime
 
@@ -27,20 +27,31 @@ class Document:
 
 @dataclass
 class QAlog:
+    """
+    One row per /api/rag/query call – used for dashboard + evaluation.
+    """
     log_id: str
     timestamp: datetime
     question: str
     mode: str
+    top_k: int
+    rerank: bool
     used_docs: List[str]
     grounded: bool
-    answerability: str
+    answerability: str  # HIGH / MEDIUM / LOW
+    refused: bool
+
+    retrieval_ms: float
+    generation_ms: float
+    total_ms: float
 
 
+# These are only used inside concept-graph building
 @dataclass
 class ConceptNode:
     id: str
     label: str
-    type: str  # "concept" or "document"
+    type: str  # "document" or "concept"
 
 
 @dataclass
@@ -48,3 +59,7 @@ class ConceptEdge:
     source: str
     target: str
     weight: float = 1.0
+
+
+def new_log_id() -> str:
+    return str(uuid4())

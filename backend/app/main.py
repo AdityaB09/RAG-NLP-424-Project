@@ -1,7 +1,8 @@
 from __future__ import annotations
-from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+from typing import List, Optional
+
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 
 from .storage import store
 from .schemas import (
@@ -16,6 +17,9 @@ from .schemas import (
     ConceptNodeSchema,
     ConceptEdgeSchema,
     OverviewStats,
+    FreshnessQuestion,
+    FreshnessExample,
+    FreshnessResponse,
 )
 from .rag_engine import ingest_pdf, query_rag, compute_overview_stats
 from .concept_graph import build_concept_graph
@@ -83,7 +87,7 @@ async def rag_query(req: RAGQueryRequest):
     return query_rag(req)
 
 
-# ---------- LOGS / OVERVIEW ----------
+# ---------- LOGS + OVERVIEW ----------
 
 
 @app.get("/api/rag/logs", response_model=LogsResponse)
@@ -96,9 +100,13 @@ async def get_logs():
                 timestamp=l.timestamp.isoformat(),
                 question=l.question,
                 mode=l.mode,
+                top_k=l.top_k,
+                rerank=l.rerank,
                 used_docs=l.used_docs,
                 grounded=l.grounded,
                 answerability=l.answerability,
+                refused=l.refused,
+                total_ms=l.total_ms,
             )
         )
     return LogsResponse(logs=items)
@@ -122,8 +130,59 @@ async def get_concept_graph():
     ]
     edges = [
         ConceptEdgeSchema(
-            source=e["source"], target=e["target"], weight=float(e["weight"])
+            source=e["source"],
+            target=e["target"],
+            weight=float(e["weight"]),
         )
         for e in graph["edges"]
     ]
     return ConceptGraphResponse(nodes=nodes, edges=edges)
+
+
+# ---------- FRESHNESS ----------
+
+
+@app.get("/api/rag/questions", response_model=List[FreshnessQuestion])
+async def list_questions():
+    """
+    Distinct questions that have ever been asked – used to drive the
+    /freshness dropdown in the UI.
+    """
+    counts: dict[str, int] = {}
+    for l in store.logs:
+        counts[l.question] = counts.get(l.question, 0) + 1
+
+    out: List[FreshnessQuestion] = [
+        FreshnessQuestion(question=q, count=c)
+        for q, c in sorted(counts.items(), key=lambda x: -x[1])
+    ]
+    return out
+
+
+@app.get("/api/rag/freshness", response_model=FreshnessResponse)
+async def freshness(question: str = Query(..., description="Exact question string")):
+    """
+    Return all logs corresponding to a single question (timeline).
+    This lets the frontend show 'before' and 'after' behaviour when you
+    add new PDFs.
+    """
+    filtered = [l for l in store.logs if l.question == question]
+    if not filtered:
+        raise HTTPException(status_code=404, detail="No logs for that question")
+
+    filtered.sort(key=lambda x: x.timestamp)
+
+    examples: List[FreshnessExample] = []
+    for l in filtered:
+        examples.append(
+            FreshnessExample(
+                timestamp=l.timestamp.isoformat(),
+                used_docs=l.used_docs,
+                grounded=l.grounded,
+                answerability=l.answerability,
+                refused=l.refused,
+                total_ms=l.total_ms,
+            )
+        )
+
+    return FreshnessResponse(question=question, examples=examples)

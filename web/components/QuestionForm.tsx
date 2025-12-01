@@ -16,11 +16,18 @@ type Citation = {
 
 type RAGResponse = {
   answer: string;
-  citations: Citation[];
   answerability: string;
+  refused: boolean;
+  reason?: string | null;
+  citations: Citation[];
   retrieval_graph: {
     nodes: any[];
     edges: any[];
+  };
+  timings_ms: {
+    retrieval: number;
+    generation: number;
+    total: number;
   };
 };
 
@@ -46,7 +53,7 @@ const QuestionForm: FC = () => {
       setResponse(res);
     } catch (err) {
       console.error(err);
-      alert("Query failed – is the backend running and documents uploaded?");
+      alert("Query failed – is the backend running and are PDFs uploaded?");
     } finally {
       setLoading(false);
     }
@@ -71,7 +78,7 @@ const QuestionForm: FC = () => {
               className="input h-24 resize-none"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder='E.g. "What is semantic parsing?", "How do syntactic and dependency parsing differ?"'
+              placeholder='E.g. "What is semantic parsing?", "How is a Transformer different from an RNN?"'
             />
             <div className="flex flex-wrap gap-3 text-xs">
               <div className="space-y-1">
@@ -126,24 +133,32 @@ const QuestionForm: FC = () => {
 
         <div className="card">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-slate-100">
-              Answer
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-100">Answer</h2>
             {response && (
-              <span className={badgeClass}>
-                Answerability: {response.answerability}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={badgeClass}>
+                  Answerability: {response.answerability}
+                </span>
+                <span className="badge bg-slate-900/80 border-slate-700 text-[10px]">
+                  total {response.timings_ms.total.toFixed(1)} ms
+                </span>
+              </div>
             )}
           </div>
           {response ? (
             <div className="space-y-3 text-xs">
+              {response.refused && (
+                <div className="border border-yellow-500/40 bg-yellow-500/10 rounded-xl px-3 py-2 text-[11px] text-yellow-100 mb-2">
+                  <strong>Refused:</strong>{" "}
+                  {response.reason ||
+                    "Insufficient evidence in the CS 421 slides to answer safely."}
+                </div>
+              )}
               <pre className="whitespace-pre-wrap text-slate-100 text-xs">
                 {response.answer}
               </pre>
               <div>
-                <h3 className="text-xs font-semibold mb-1">
-                  Citations
-                </h3>
+                <h3 className="text-xs font-semibold mb-1">Citations</h3>
                 {response.citations.length === 0 ? (
                   <p className="text-xs text-slate-500">
                     No supporting chunks found.
@@ -151,7 +166,10 @@ const QuestionForm: FC = () => {
                 ) : (
                   <ul className="space-y-2">
                     {response.citations.map((c, idx) => (
-                      <li key={idx} className="border border-slate-800 rounded-xl p-2">
+                      <li
+                        key={idx}
+                        className="border border-slate-800 rounded-xl p-2"
+                      >
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <span className="font-semibold text-slate-100 text-xs">
                             [{idx + 1}] {c.doc_title} – p{c.page_number}
@@ -173,7 +191,8 @@ const QuestionForm: FC = () => {
             </div>
           ) : (
             <p className="text-xs text-slate-500">
-              Ask something to see a grounded answer with citations.
+              Ask something to see a grounded answer with citations and
+              timings.
             </p>
           )}
         </div>

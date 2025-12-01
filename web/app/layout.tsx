@@ -1,45 +1,41 @@
 import "./../styles/globals.css";
-import type { ReactNode } from "react";
+import Link from "next/link";
 
-export const metadata = {
-  title: "RAGCourseLab",
-  description: "Interactive RAG explorer over your CS 421 course PDFs.",
-};
-
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="min-h-screen">
+      <body className="bg-slate-950 text-slate-100">
         <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-semibold">
-                RAGCourseLab
-              </h1>
-              <p className="text-xs text-slate-400 max-w-xl">
-                Fact-grounded assistant over your CS 421 slides – with retrieval
-                graphs, course-aware concept maps, and evaluation logs.
+              <h1 className="text-2xl font-semibold">RAG-Scope</h1>
+              <p className="text-xs text-slate-400">
+              
               </p>
             </div>
             <nav className="flex flex-wrap gap-2 text-xs">
-              <a href="/" className="badge bg-slate-900 border-slate-700">
+              <Link className="nav-pill" href="/">
                 Overview
-              </a>
-              <a href="/corpus" className="badge bg-slate-900 border-slate-700">
+              </Link>
+              <Link className="nav-pill" href="/corpus">
                 Corpus
-              </a>
-              <a href="/questions" className="badge bg-slate-900 border-slate-700">
+              </Link>
+              <Link className="nav-pill" href="/questions">
                 Questions
-              </a>
-              <a href="/logs" className="badge bg-slate-900 border-slate-700">
+              </Link>
+              <Link className="nav-pill" href="/logs">
                 Logs
-              </a>
-              <a
-                href="/concept-graph"
-                className="badge bg-slate-900 border-slate-700"
-              >
+              </Link>
+              <Link className="nav-pill" href="/freshness">
+                Freshness
+              </Link>
+              <Link className="nav-pill" href="/concept-graph">
                 Concept graph
-              </a>
+              </Link>
             </nav>
           </header>
           {children}
