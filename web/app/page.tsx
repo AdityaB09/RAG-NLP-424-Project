@@ -28,9 +28,9 @@ export default function HomePage() {
       <main className="space-y-4">
   {/* Render API Warmup Notice */}
   <div className="p-4 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs leading-relaxed">
-    <p>
+    <p className="font-semibold text-slate-100">
       <span className="font-semibold text-slate-100">Important:</span>{" "}
-      This project uses a free-tier Render backend. The API will sleep when inactive.
+      This project uses a Render backend. The API will sleep when inactive.
       Starting the backend may take <span className="font-semibold text-slate-100">50–55 seconds</span>.
     </p>
     <p className="mt-2">
@@ -42,6 +42,7 @@ export default function HomePage() {
       >
         https://rag-scope-api.onrender.com/
       </a>
+      
     </p>
   </div>
 
