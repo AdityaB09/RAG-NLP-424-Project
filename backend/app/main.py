@@ -27,7 +27,9 @@ from .concept_graph import build_concept_graph
 
 app = FastAPI(title="RAGCourseLab API")
 
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://rag-scope-frontend.vercel.app"]
 
 app.add_middleware(
     CORSMiddleware,
